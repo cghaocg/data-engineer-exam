@@ -10,13 +10,9 @@ from plot import plot
 def detect(path, detector):
     pred = []
     vals = []
-    with open(path, newline='') as csvfile:
-        rows = csv.DictReader(csvfile)
-        for row in rows:
-            val = row.get('value')
-            ret = detector.fit_predict(val)
-            pred.append(float(ret))
-            vals.append(float(val))
+
+    vals, pred = detector.fit_predict(path)
+
     return vals, pred
 
 

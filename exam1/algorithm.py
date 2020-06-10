@@ -1,33 +1,32 @@
 import random
 import pandas as pd
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import IsolationForest
+from creme import anomaly
+from creme import compose
+from creme import preprocessing
 
 class Detector:
-    def fit_predict(self, path):
-        pred = []
-        vals = []
+    def __init__(self):
+        self.model = compose.Pipeline(
+            preprocessing.MinMaxScaler(),
+            anomaly.HalfSpaceTrees(
+                n_trees=20,
+                height=3,
+                window_size=150,
+                seed=None
+            )
+        )
+    
+    def fit_predict(self, ptr):
+    
+        ptr = float(ptr)
         
-        df = pd.read_csv(path)
-
-        data = df[['value']]
-        scaler = StandardScaler()
-        np_scaled = scaler.fit_transform(data)
-        data = pd.DataFrame(np_scaled)
-
-        # train isolation forest
-        outliers_fraction = 0.01
-        model =  IsolationForest(contamination=outliers_fraction)
-        model.fit(data)
-        df['anomaly'] = pd.Series(model.predict(data))
-
-        # 調整 normal=0 & anomaly=1
-        df["anomaly"][df["anomaly"] == 1] = 0
-        df["anomaly"][df["anomaly"] == -1] = 1
+        score = self.model.score_one({'x': ptr})
+        self.model = self.model.fit_one({'x': ptr})
         
-        for row in df.itertuples():
-            vals.append(getattr(row, "value"))
-            pred.append(getattr(row, "anomaly"))
-        
-        return vals, pred
+        if score > 0.8:
+            pred = 1
+        else:
+            pred = 0
+
+        return pred

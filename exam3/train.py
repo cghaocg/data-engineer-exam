@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import argparse
 
+from time import time, strftime, localtime
+
 import torch
 import torch.nn as nn
 from sklearn.preprocessing import MinMaxScaler
@@ -60,9 +62,9 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
-    epochs = 1
-    
-    for i in range(epochs):
+    for i in range(args.epochs):
+        t0 = time()
+
         for seq, labels in train_input_seq:
             optimizer.zero_grad()
             model.hidden_cell = (torch.zeros(model.num_layers, model.batch_size, model.hidden_layer_size),
@@ -74,7 +76,7 @@ if __name__ == '__main__':
             single_loss.backward()
             optimizer.step()
 
-        print(f"epoch: {i:3} loss: {single_loss.item():10.8f}")
+        print(f"epoch: {i:3} loss: {single_loss.item():10.8f}", "花費時間： %0.3fs" % (time() - t0), strftime("%Y-%m-%d %H:%M:%S", localtime()))
     
         
     #================= save model weights =================#
